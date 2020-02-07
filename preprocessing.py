@@ -29,6 +29,7 @@ class FeatureCreator(object):
         Parameters
         ----------
         component : str
+            Input string.
         max_branch_len : int, optional
             Maximum permissible number of closing parentheses describing
             branch length in DeepSMILES notation.
