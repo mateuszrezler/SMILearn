@@ -1,6 +1,11 @@
-compound = '[2H]C[C@H](I)Br'
-mol = Chem.MolFromSmiles(Chem.MolToSmiles(Chem.MolFromSmiles(compound)))
-kek = Chem.MolToSmiles(Chem.MolFromSmiles(compound), kekuleSmiles=True)
+import pandas as pd
+from rdkit import Chem
+
+
+compound = Chem.MolToSmiles(Chem.MolFromSmiles('[2H]C[C@H](c1cocc1)Br'),
+                            isomericSmiles=True)
+mol = Chem.MolFromSmiles(compound)
+kek = Chem.MolToSmiles(mol, isomericSmiles=True, kekuleSmiles=True)
 function_list = [
                  ['GetSymbol', 'H'],
                  ['GetSymbol', 'C'],
@@ -11,9 +16,11 @@ function_list = [
 atom_index = 0
 matrix = []
 for char in kek:
-    vector = []
+    vector = [char]  # debug mode
     if char == 'H':
         vector.extend([1] + [0]*len(function_list))
+        if mol.GetAtomWithIdx(atom_index).GetSymbol() == 'H':
+            atom_index += 1
     elif char.isupper():
         features = []
         for function in function_list:
