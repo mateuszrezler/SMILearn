@@ -1,8 +1,12 @@
-r"""Module setting up Google Colab Notebook when imported.
-Detailed settings can be found and modified in `setup.sh` script.
+r"""
+colab_setup
+
+Module setting up Google Colab Notebook when imported.
+Detailed settings can be found and modified in `colab_setup.sh` script.
+
 """
 if __name__ == '__main__':
-    print(__doc__)
+    print('IMPORT-ONLY MODULE', __doc__, end='', sep='\n')
 else:
     import os
     import subprocess
