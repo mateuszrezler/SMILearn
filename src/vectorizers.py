@@ -1,8 +1,9 @@
-from pandas import DataFrame
-from numpy import array
-from re import findall, search
-from rdkit import Chem
 from deepsmiles import Converter as DeepSmilesConverter
+from numpy import array
+from os.path import join as pathjoin
+from pandas import DataFrame, read_csv, to_numeric
+from rdkit import Chem
+from re import findall, search
 
 
 class VectorizationRules(list):
@@ -129,13 +130,7 @@ class MolVectorizer(object):
     ):
         for token_vectorizer in token_vectorizers:
             code, str_astype = token_vectorizer
-            code_glob_vars = {
-                '__builtins__': {},
-                'idx': atom_index,
-                'mol': mol,
-                'token': token
-            }
-            str_astype_glob_vars = {
+            glob_vars = {
                 '__builtins__': {
                     'bool': bool,
                     'float': float,
@@ -143,7 +138,13 @@ class MolVectorizer(object):
                     'str': str
                 }
             }
-            astype = eval(str_astype, str_astype_glob_vars)
+            code_glob_vars = {
+                'idx': atom_index,
+                'mol': mol,
+                'token': token
+            }
+            code_glob_vars.update(glob_vars)
+            astype = eval(str_astype, glob_vars)
             token_scalar = astype(eval(code, code_glob_vars))
             token_vector.append(token_scalar)
 
@@ -184,25 +185,41 @@ class MolVectorizer(object):
         self.__pad_with_zeros(mol_vector)
         return array(mol_vector)
 
-    def vectorize(self, mol):
+    def vectorize(self, mol, rebuild_mol=False):
         mol_vector = []
-        smiles = Chem.MolToSmiles(mol, kekuleSmiles=self.kekule,
-                                  allBondsExplicit=self.all_bonds,
-                                  allHsExplicit=self.all_hydrogens)
+        if rebuild_mol:
+            mol = Chem.MolFromSmiles(
+                Chem.MolToSmiles(mol, isomericSmiles=True)
+            )
+        smiles = Chem.MolToSmiles(
+            mol, kekuleSmiles=self.kekule, allBondsExplicit=self.all_bonds,
+            allHsExplicit=self.all_hydrogens, isomericSmiles=True
+        )
+        print(smiles)  # for current debugging
         tt = TextTokenizer(self.smiles_modifier, self.smiles_regex)
         smilist = tt.tokenize(smiles)
         mol_vector = self.__vectorize(smilist, mol, mol_vector)
         return mol_vector
 
-avr = VectorizationRules.from_csv(pathjoin('vect_rules', 'avr1.tsv'), sep='\t')
-svr = VectorizationRules.from_csv(pathjoin('vect_rules', 'svr1.tsv'), sep='\t')
+
+avr = VectorizationRules.from_csv(
+    pathjoin('..', 'vect_rules', 'avr1.tsv'), sep='\t'
+)
+svr = VectorizationRules.from_csv(
+    pathjoin('..', 'vect_rules', 'svr1.tsv'), sep='\t'
+)
 dsc = DeepSmilesConverter(branches=True, rings=True)
-mv = MolVectorizer(atom_vect_rules=avr, struct_vect_rules=svr,
+mv = MolVectorizer(atom_vect_rules=avr,
+                   struct_vect_rules=svr,
                    smiles_modifier=dsc.encode,
                    smiles_regex=r'\[.*?\]|%\d{2}|\)+|[\d\(\)\-/\\:=#\$\.]',
-                   atom_regex=r'\[.+?\]', all_hydrogens=True, all_bonds=True)
-molvec = mv.vectorize(Chem.MolFromSmiles(
-    'CN1CCC[C@H]1C1=CC=C[N+]([2H])=C1.[Cl-]'))
+                   atom_regex=r'\[.+?\]',
+                   all_hydrogens=True,
+                   all_bonds=True,
+                   pad_len=0)
+molvec = mv.vectorize(
+    Chem.MolFromSmiles('[Cl-].CN1CCC[C@H]1C1=CC=CN=C1'), rebuild_mol=True
+)
 smimat = molvec.reshape(-1, 43)
 df_cols = \
     ('Symbol',) \
@@ -211,8 +228,8 @@ df_cols = \
        'S_', 'SP', 'SP2', 'SP3', 'SP3D', 'SP3D2', 'Hyb*') \
     + tuple('()[].:=#\\/@+-234567<>')
 df = DataFrame(smimat, columns=df_cols)
-df[['H', 'C']] = df[['H', 'C']].apply(lambda x: to_numeric(x, errors='coerce',
-                                                           downcast='integer'))
-
-print(df[10:15])
+df[['H', 'C']] = df[['H', 'C']].apply(
+    lambda x: to_numeric(x, errors='coerce', downcast='integer')
+)
+print(df[['Symbol', 'CW', 'CCW', 'Chi*']][:15])
 
