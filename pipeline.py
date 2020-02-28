@@ -41,8 +41,16 @@ class FunctionApplier(PipelineTransformer):
         self.save_as = save_as
         self.function_kwargs = function_kwargs
 
+    def _check_types(self):
+        """todo"""
+        if not (callable(self.function) \
+                and isinstance(self.columns, list) \
+                and isinstance(self.save_as, list)):
+            raise TypeError('todo')
+
     def transform(self, X):
         """todo"""
+        self._check_types()
         for idx, column in enumerate(self.columns):
             applied = X[column].apply(
                 lambda x: self.function(x, **self.function_kwargs))
