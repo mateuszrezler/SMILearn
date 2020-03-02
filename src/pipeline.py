@@ -68,6 +68,14 @@ class FunctionApplier(PipelineTransformer):
         return X
 
 
+class NanDropper(PipelineTransformer):
+    """todo"""
+
+    def transform(self, X):
+        """todo"""
+        return X.dropna().reset_index(drop=True)
+
+
 class Zipper(PipelineTransformer):
     """todo"""
 
@@ -110,26 +118,32 @@ class LenFilter(FunctionApplier):
     @staticmethod
     def filter_len(obj, min_len, max_len, bounded):
         """todo"""
-        signs = ['<'+'='*bounded[i] for i in range(2)]
+        signs = ['<' + '='*bounded[i] for i in range(2)]
         return obj if eval(f'min_len {signs[0]} len(obj) {signs[1]} max_len') \
             else None
 
 
-class NanDropper(PipelineTransformer):
+class RegexTokenizer(FunctionApplier):
     """todo"""
 
-    def transform(self, X):
+    def __init__(self, columns, save_as=None, regex='.'):
         """todo"""
-        return X.dropna().reset_index(drop=True)
+        self.function = self.tokenize
+        self._assign_rest(columns, save_as, regex=regex)
+
+    @staticmethod
+    def tokenize(text, regex='.'):
+        """todo"""
+        return findall(regex, text)
 
 
 class SmilesRebuilder(FunctionApplier):
     """todo"""
 
-    def __init__(self, columns, save_as=None, **function_kwargs):
+    def __init__(self, columns, save_as=None, **mol_to_smiles_kwargs):
         """todo"""
         self.function = self.reb
-        self._assign_rest(columns, save_as, **function_kwargs)
+        self._assign_rest(columns, save_as, **mol_to_smiles_kwargs)
 
     @staticmethod
     def reb(smiles, **mol_to_smiles_kwargs):
@@ -142,7 +156,7 @@ class SmilesVectorizer(FunctionApplier):
     def __init__(self,
                  columns,
                  save_as=None,
-                 atom_regex=r'[A-Z][a-z]|[A-Z]',
+                 atom_regex=r'\[.+?\]|Br|Cl|[BCFINOPSbcnops]',
                  atom_functions=[lambda mol, index:
                                  mol.GetAtomWithIdx(index).GetSymbol()],
                  struct_functions=[lambda token: token],
@@ -159,7 +173,7 @@ class SmilesVectorizer(FunctionApplier):
 
     @staticmethod
     def vectorize(smiles_tuple,
-                  atom_regex=r'[A-Z][a-z]|[A-Z]',
+                  atom_regex=r'\[.+?\]|Br|Cl|[BCFINOPSbcnops]',
                   atom_functions=[lambda mol, index:
                                   mol.GetAtomWithIdx(index).GetSymbol()],
                   struct_functions=[lambda token: token],
@@ -199,27 +213,13 @@ class SmilesVectorizer(FunctionApplier):
             if search(atom_regex, token):
                 append_atom_features(token_vector, mol, atom_index,
                                      atom_functions)
-                token_vector.extend([0]*len(struct_functions))
+                token_vector.extend([0] * len(struct_functions))
                 atom_index += 1
             else:
-                token_vector.extend([0]*(len(atom_functions)))
+                token_vector.extend([0] * (len(atom_functions)))
                 append_struct_features(token_vector, token, struct_functions)
             mol_vector.extend(token_vector)
         fill_with_zeros(mol_vector)
         pad_with_zeros(mol_vector)
         return mol_vector
-
-
-class RegexTokenizer(FunctionApplier):
-    """todo"""
-
-    def __init__(self, columns, save_as=None, regex='.'):
-        """todo"""
-        self.function = self.tokenize
-        self._assign_rest(columns, save_as, regex=regex)
-
-    @staticmethod
-    def tokenize(text, regex='.'):
-        """todo"""
-        return findall(regex, text)
 
