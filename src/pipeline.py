@@ -30,6 +30,18 @@ class ColumnRenamer(PipelineTransformer):
         return X
 
 
+class ColumnDropper(PipelineTransformer):
+    """todo"""
+
+    def __init__(self, columns):
+        """todo"""
+        self.columns = columns
+
+    def transform(self, X):
+        """todo"""
+        return X.drop(self.columns, axis=1)
+
+
 class ColumnSelector(PipelineTransformer):
     """todo"""
 
@@ -71,9 +83,21 @@ class FunctionApplier(PipelineTransformer):
 class NanDropper(PipelineTransformer):
     """todo"""
 
+    def __init__(self, subset=None):
+        """todo"""
+        self.subset = subset
+
     def transform(self, X):
         """todo"""
-        return X.dropna().reset_index(drop=True)
+        return X.dropna(subset=self.subset).reset_index(drop=True)
+
+
+class NanFiller(PipelineTransformer):
+    """todo"""
+
+    def transform(self, X):
+        """todo"""
+        return X.fillna(0)
 
 
 class Zipper(PipelineTransformer):
@@ -189,37 +213,30 @@ class SmilesVectorizer(FunctionApplier):
             for struct_function in struct_functions:
                 token_vector.append(struct_function(token))
 
-        def calculate_vec_len_and_pad_zeros():
-            vec_len = len(atom_functions) + len(struct_functions)
-            return vec_len, pad_len * vec_len
-
-        def fill_with_zeros(mol_vector):
-            vec_len, pad_zeros = calculate_vec_len_and_pad_zeros()
-            max_zeros = max_len * vec_len
-            fill_zeros = max_zeros - len(mol_vector) + pad_zeros
-            mol_vector.extend([0] * fill_zeros)
-
-        def pad_with_zeros(mol_vector):
-            pad_zeros = calculate_vec_len_and_pad_zeros()[1]
-            mol_vector.extend([0] * pad_zeros)
-
-        smiles, tokens = smiles_tuple
-        mol = MolFromSmiles(smiles)
         mol_vector = []
-        pad_with_zeros(mol_vector)
+        smiles, tokens = smiles_tuple
+        vec_len = len(atom_functions) + len(struct_functions)
+        max_zeros = max_len*vec_len
+        pad_zeros = pad_len*vec_len
+        if len(tokens) > max_len:
+            mol_vector.extend([0]*(max_zeros + 2*pad_zeros))
+            return mol_vector
+        mol_vector.extend([0] * pad_zeros)
+        mol = MolFromSmiles(smiles)
         atom_index = 0
         for idx, token in enumerate(tokens):
             token_vector = []
             if search(atom_regex, token):
                 append_atom_features(token_vector, mol, atom_index,
                                      atom_functions)
-                token_vector.extend([0] * len(struct_functions))
+                token_vector.extend([0]*len(struct_functions))
                 atom_index += 1
             else:
-                token_vector.extend([0] * (len(atom_functions)))
+                token_vector.extend([0]*(len(atom_functions)))
                 append_struct_features(token_vector, token, struct_functions)
             mol_vector.extend(token_vector)
-        fill_with_zeros(mol_vector)
-        pad_with_zeros(mol_vector)
+        fill_zeros = max_zeros - len(mol_vector) + pad_zeros
+        mol_vector.extend([0]*fill_zeros)
+        mol_vector.extend([0]*pad_zeros)
         return mol_vector
 
