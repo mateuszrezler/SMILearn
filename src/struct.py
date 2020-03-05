@@ -1,3 +1,6 @@
+from re import findall, sub
+
+
 def is_char(char, astype=int):
 
     def is_this_char(token):
