@@ -187,20 +187,24 @@ class SmilesVectorizer(PipelineTransformer):
     def __init__(self,
                  smiles_column=None,
                  tokens_column=None,
+                 ignore_regex=None,
                  atom_regex=r'\[.+?\]|Br|Cl|[BCFINOPSbcnops]',
                  atom_functions=[lambda mol, index:
                                  mol.GetAtomWithIdx(index).GetSymbol()],
                  struct_functions=[lambda token: token],
                  max_len=100,
-                 pad_len=0):
+                 pad_len=0,
+                 h_vector=False):
 
         self.smiles_column = smiles_column
         self.tokens_column = tokens_column
+        self.ignore_regex = ignore_regex
         self.atom_regex = atom_regex
         self.atom_functions = atom_functions
         self.struct_functions = struct_functions
         self.max_len = max_len
         self.pad_len = pad_len
+        self.h_vector = h_vector
         self._calculate_zeros()
 
     def _append_atom_features(self, token_vector, mol, atom_index):
@@ -219,7 +223,11 @@ class SmilesVectorizer(PipelineTransformer):
         atom_index = 0
         for token in tokens:
             token_vector = []
-            if search(self.atom_regex, token):
+            if self.ignore_regex and search(self.ignore_regex, token):
+                continue
+            elif self.h_vector and token == 'H':
+                token_vector.extend([1] + [0]*(self.n_func-1))
+            elif search(self.atom_regex, token):
                 self._append_atom_features(token_vector, mol, atom_index)
                 token_vector.extend([0]*len(self.struct_functions))
                 atom_index += 1
@@ -249,8 +257,8 @@ class SmilesVectorizer(PipelineTransformer):
             else:
                 smiles_vector = self.vectorize(smiles_series[index], tokens)
             vectorized_series.append(smiles_vector)
-        return array(vectorized_series).reshape(len(smiles_series), -1,
-                                                self.n_func)
+        return array(vectorized_series)#.reshape(len(smiles_series), -1,
+                                        #        self.n_func)
 
     def vectorize(self, smiles, tokens):
 
