@@ -272,3 +272,28 @@ class SmilesVectorizer(PipelineTransformer):
         smiles_vector.extend([0]*self.pad_zeros)
         return array(smiles_vector)
 
+
+class RingTagInserter(FunctionApplier):
+
+    def __init__(self, columns, save_as=None, **function_kwargs):
+        self.function = self.insert
+        self._assign_rest(columns, save_as, **function_kwargs)
+
+    @staticmethod
+    def insert(smiles, tags='<>', reuse=False):
+        numbers = []
+        modified_smiles = ''
+        smiles_list = findall('\d|%\d+|.+?', smiles)
+        for index, element in enumerate(smiles_list):
+            if element[-1].isdigit() and smiles[index-1] not in '+-':
+                if element not in numbers:
+                    modified_smiles += tags[0]
+                    numbers.append(element)
+                else:
+                    modified_smiles += tags[1]
+                    if reuse:
+                        numbers.remove(element)
+            else:
+                modified_smiles += element
+        return modified_smiles
+
