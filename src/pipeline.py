@@ -253,6 +253,7 @@ class SmilesVectorizer(PipelineTransformer):
         vectorized_series = []
         for index, tokens in enumerate(tokens_series):
             if len(tokens) > self.max_len:
+                print(f'Too many tokens ({len(tokens)})\n{tokens}')
                 smiles_vector = [0]*(self.max_zeros + 2*self.pad_zeros)
             else:
                 smiles_vector = self.vectorize(smiles_series[index], tokens)
