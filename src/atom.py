@@ -45,7 +45,7 @@ def has_no_symbol(symbols, astype=float):
     return _has_no_symbol
 
 
-def has_symbol(symbol, astype=float):
+def has_symbol(symbols, astype=float):
     if isinstance(symbols, str):
         symbols = [symbols]
 
