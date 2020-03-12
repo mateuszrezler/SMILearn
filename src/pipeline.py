@@ -9,7 +9,7 @@ from sklearn.base import BaseEstimator, TransformerMixin
 
 class PipelineTransformer(BaseEstimator, TransformerMixin):
 
-    def fit(self, X):
+    def fit(self, X, y=None):
 
         return self
 
@@ -20,7 +20,7 @@ class ColumnRenamer(PipelineTransformer):
 
         self.renamer_dict = renamer_dict
 
-    def transform(self, X):
+    def transform(self, X, y=None):
 
         X.columns = [self.renamer_dict[column]
                      if column in self.renamer_dict
@@ -35,7 +35,7 @@ class ColumnDropper(PipelineTransformer):
 
         self.columns = columns
 
-    def transform(self, X):
+    def transform(self, X, y=None):
 
         return X.drop(self.columns, axis=1)
 
@@ -46,7 +46,7 @@ class ColumnSelector(PipelineTransformer):
 
         self.columns = columns
 
-    def transform(self, X):
+    def transform(self, X, y=None):
 
         return X.loc[:, self.columns]
 
@@ -64,7 +64,7 @@ class FunctionApplier(PipelineTransformer):
         self.save_as = save_as
         self.function_kwargs = function_kwargs
 
-    def transform(self, X):
+    def transform(self, X, y=None):
 
         for idx, column in enumerate(self.columns):
             applied = X[column].apply(
@@ -82,14 +82,14 @@ class NanDropper(PipelineTransformer):
 
         self.subset = subset
 
-    def transform(self, X):
+    def transform(self, X, y=None):
 
         return X.dropna(subset=self.subset).reset_index(drop=True)
 
 
 class NanFiller(PipelineTransformer):
 
-    def transform(self, X):
+    def transform(self, X, y=None):
 
         return X.fillna(0)
 
@@ -101,7 +101,7 @@ class ToArrayConverter(PipelineTransformer):
         self.columns = columns
         self.tolist = tolist
 
-    def transform(self, X):
+    def transform(self, X, y=None):
 
         if self.columns:
             values = X[self.columns].values
@@ -119,7 +119,7 @@ class Zipper(PipelineTransformer):
         self.columns = columns
         self.zip_column = zip_column
 
-    def transform(self, X):
+    def transform(self, X, y=None):
 
         values = [X[column].values for column in self.columns]
         X[self.zip_column] = Series(zip(*values))
@@ -242,7 +242,7 @@ class SmilesVectorizer(PipelineTransformer):
         self.max_zeros = self.max_len*self.n_func
         self.pad_zeros = self.pad_len*self.n_func
 
-    def transform(self, X):
+    def transform(self, X, y=None):
 
         smiles_series = X[self.smiles_column].values
         tokens_series = X[self.tokens_column].values
