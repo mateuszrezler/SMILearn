@@ -258,8 +258,8 @@ class SmilesVectorizer(PipelineTransformer):
             else:
                 smiles_vector = self.vectorize(smiles_series[index], tokens)
             vectorized_series.append(smiles_vector)
-        return array(vectorized_series)#.reshape(len(smiles_series), -1,
-                                        #        self.n_func)
+        return array(vectorized_series).reshape(len(smiles_series), -1,
+                                                self.n_func)
 
     def vectorize(self, smiles, tokens):
 
