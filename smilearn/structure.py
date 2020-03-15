@@ -4,7 +4,6 @@ from re import findall, sub
 def is_char(char, astype=float):
 
     def _is_char(token):
-
         return astype(token == char)
 
     return _is_char

@@ -1,21 +1,3 @@
-def atomf(function, maxval=None, shift=None, eq=None, notin=None, astype=int):
-
-    def _atom_function(mol, index):
-
-        out_function = eval(f'mol.GetAtomWithIdx(index).{function}()')
-        if shift:
-            out_function += shift
-        if maxval:
-            out_function /= maxval
-        if eq:
-            return astype(out_function == eq)
-        if notin:
-            return astype(out_function not in notin)
-        return astype(out_function)
-
-    return _atom_function
-
-
 def has_chiral_tag(chiral_tag, astype=float):
 
     def _has_chiral_tag(mol, index):
@@ -56,31 +38,6 @@ def has_symbol(symbols, astype=float):
     return _has_symbol
 
 
-#def has_symbol(symbol, astype=float):
-
-#    def _has_symbol(mol, index):
-#        atom_symbol = mol.GetAtomWithIdx(index).GetSymbol()
-#        return astype(atom_symbol == symbol)
-
-#    return _has_symbol
-
-
-def is_aromatic(astype=float):
-
-    def _is_aromatic(mol, index):
-        return astype(mol.GetAtomWithIdx(index).GetIsAromatic())
-
-    return _is_aromatic
-
-
-def is_in_ring(astype=float):
-
-    def _is_in_ring(mol, index):
-        return astype(mol.GetAtomWithIdx(index).IsInRing())
-
-    return _is_in_ring
-
-
 def get_atomic_num(maxval=1, astype=float):
 
     def _get_atomic_num(mol, index):
@@ -106,24 +63,6 @@ def get_degree(maxval=1, astype=float):
         return astype(degree / maxval)
 
     return _get_degree
-
-
-def get_num_hs(maxval=1, astype=float):
-
-    def _get_num_hs(mol, index):
-        num_hs = mol.GetAtomWithIdx(index).GetTotalNumHs()
-        return astype(num_hs / maxval)
-
-    return _get_num_hs
-
-
-def get_valence(maxval=1, astype=float):
-
-    def _get_valence(mol, index):
-        valence = mol.GetAtomWithIdx(index).GetTotalValence()
-        return astype(valence / maxval)
-
-    return _get_valence
 
 
 def get_group(maxval=1, astype=float,
@@ -159,6 +98,15 @@ def get_group(maxval=1, astype=float,
     return _get_group
 
 
+def get_num_hs(maxval=1, astype=float):
+
+    def _get_num_hs(mol, index):
+        num_hs = mol.GetAtomWithIdx(index).GetTotalNumHs()
+        return astype(num_hs / maxval)
+
+    return _get_num_hs
+
+
 def get_period(maxval=1, astype=float,
                period_dict={
                    (1, 2): 1,
@@ -178,6 +126,31 @@ def get_period(maxval=1, astype=float,
         return astype(0)
 
     return _get_period
+
+
+def get_valence(maxval=1, astype=float):
+
+    def _get_valence(mol, index):
+        valence = mol.GetAtomWithIdx(index).GetTotalValence()
+        return astype(valence / maxval)
+
+    return _get_valence
+
+
+def is_aromatic(astype=float):
+
+    def _is_aromatic(mol, index):
+        return astype(mol.GetAtomWithIdx(index).GetIsAromatic())
+
+    return _is_aromatic
+
+
+def is_in_ring(astype=float):
+
+    def _is_in_ring(mol, index):
+        return astype(mol.GetAtomWithIdx(index).IsInRing())
+
+    return _is_in_ring
 
 
 def is_metal(astype=float, atomic_num_tuple=(1, 2, 53, 54, *range(5, 11),

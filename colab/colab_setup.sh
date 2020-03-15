@@ -11,5 +11,3 @@ conda install -q -y -c conda-forge rdkit
 # Install DeepSMILES unofficial GitHub fork
 pip install git+git://github.com/mateuszrezler/deepsmiles@master
 
-# Install wget
-pip install wget
