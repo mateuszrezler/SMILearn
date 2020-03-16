@@ -1,5 +1,6 @@
 from IPython.display import display, HTML
 
+
 BR = '<br/>'
 
 
@@ -20,14 +21,6 @@ def fig(counter, caption, br=(1, 2)):
         '<br/>'*br[0]+f'<br/><b>Fig. {counter}</b> {caption}'+'<br/>'*br[1]))
     counter += 1
     return counter
-
-
-def hide_atoms(atoms):
-    return {atom: [.75, .75, .75] for atom in atoms}
-
-
-def molimg(mol, size=(320, 320), **mol_to_image_kwargs):
-    display(MolToImage(mol, size, **mol_to_image_kwargs))
 
 
 def i(text):

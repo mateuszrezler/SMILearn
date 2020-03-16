@@ -1,7 +1,8 @@
 from deepsmiles import Converter as DeepSmilesConverter
 from numpy import array
-from re import findall, search
+from pandas import DataFrame, Series
 from rdkit.Chem import MolFromSmiles, MolToSmiles
+from re import findall, search
 from sklearn.base import BaseEstimator, TransformerMixin
 
 
@@ -13,22 +14,28 @@ class PipelineTransformer(BaseEstimator, TransformerMixin):
 
 class FunctionApplier(PipelineTransformer):
 
-    def __init__(self, function, **function_kwargs):
+    def __init__(self, function, astype=Series, **function_kwargs):
         self.function = function
+        self.astype = astype
         self.function_kwargs = function_kwargs
 
-    def transform(self, X, y=None):
-        X_new = DataFrame()
-        for column in X.columns:
-            X_new[column] = X[column].apply(
-                lambda x: self.function(x, **self.function_kwargs))
-        return X_new
+    def __call__(self, smiles):
+        return self.function(smiles)
 
-
-class NanFiller(PipelineTransformer):
+    def apply(self, smiles):
+        return self.function(smiles)
 
     def transform(self, X, y=None):
-        return X.fillna(0)
+        return self.astype(X.apply(self.function))
+
+
+class SeriesSelector(PipelineTransformer):
+
+    def __init__(self, series):
+        self.series = series
+
+    def transform(self, X, y=None):
+        return X[self.series]
 
 
 class ToArrayConverter(PipelineTransformer):
@@ -37,49 +44,54 @@ class ToArrayConverter(PipelineTransformer):
         return array(X.values.tolist())
 
 
+class ZerosFiller(PipelineTransformer):
+
+    def transform(self, X, y=None):
+        return X.fillna(0)
+
+
 class DeepSmilesEncoder(FunctionApplier):
 
-    def __init__(self, **function_kwargs):
-        self.function = self.encode
-        self.function_kwargs = function_kwargs
+    def __init__(self, branches=True, rings=True):
+        super().__init__(self.encode)
+        self.encoder = DeepSmilesConverter(branches, rings)
 
-    @staticmethod
-    def encode(smiles, branches=True, rings=True):
-        dsc = DeepSmilesConverter(branches, rings)
-        return dsc.encode(smiles)
+    def encode(self, smiles):
+        k = self.function_kwargs
+        return self.encoder.encode(smiles)
 
 
 class RegexTokenizer(FunctionApplier):
 
-    def __init__(self, **function_kwargs):
-        self.function = self.tokenize
-        self.function_kwargs = function_kwargs
+    def __init__(self, astype=Series, regex='.'):
+        super().__init__(self.tokenize, astype=astype, regex=regex)
 
-    @staticmethod
-    def tokenize(text, regex='.'):
-        return findall(regex, text)
+    def tokenize(self, text):
+        k = self.function_kwargs
+        return findall(k['regex'], text)
 
 
 class RingTagInserter(FunctionApplier):
 
-    def __init__(self, **function_kwargs):
-        self.function = self.insert
-        self.function_kwargs = function_kwargs
+    def __init__(self, astype=Series, regex=r'%\d+|\d[\+\-]\]|.',
+                 reuse=False, tags='<>'):
+        super().__init__(self.insert, astype=astype, regex=regex,
+                         reuse=reuse, tags=tags)
 
-    @staticmethod
-    def insert(smiles, tags='<>', reuse=False):
-        numbers = []
+    def insert(self, smiles):
+        k = self.function_kwargs
         modified_smiles = ''
-        smiles_list = findall('\d|%\d+|.+?', smiles)
-        for index, element in enumerate(smiles_list):
-            if element[-1].isdigit() and smiles[index-1] not in '+-':
-                if element not in numbers:
-                    modified_smiles += tags[0]
-                    numbers.append(element)
+        smiles_list = findall(k['regex'], smiles)
+        used_numbers = []
+        for element in smiles_list:
+            if element[-1].isdigit():
+                if element not in used_numbers:
+                    modified_smiles += k['tags'][0]
+                    used_numbers.append(element)
                 else:
-                    modified_smiles += tags[1]
-                    if reuse:
-                        numbers.remove(element)
+                    modified_smiles += k['tags'][1]
+                    if k['reuse']:
+                        used_numbers.remove(element)
             else:
                 modified_smiles += element
         return modified_smiles
@@ -87,27 +99,18 @@ class RingTagInserter(FunctionApplier):
 
 class SmilesFeaturizer(PipelineTransformer):
 
-    def __init__(self,
-                 smiles_column=None,
-                 tokens_column=None,
-                 ignore_regex=None,
-                 atom_regex=r'\[.+?\]|Br|Cl|[BCFINOPSbcnops]',
-                 atom_functions=[lambda mol, index:
-                                 mol.GetAtomWithIdx(index).GetSymbol()],
-                 struct_functions=[lambda token: token],
-                 max_len=100,
-                 pad_len=0,
-                 h_vector=False):
-
-        self.smiles_column = smiles_column
-        self.tokens_column = tokens_column
-        self.ignore_regex = ignore_regex
-        self.atom_regex = atom_regex
+    def __init__(self, atom_functions, struct_functions, smiles_column=0,
+                 tokens_column=1, atom_regex=r'\[.+?\]|Br|Cl|.',
+                 h_vector=False, ignore_regex=None, max_len=100, pad_len=0):
         self.atom_functions = atom_functions
         self.struct_functions = struct_functions
+        self.smiles_column = smiles_column
+        self.tokens_column = tokens_column
+        self.atom_regex = atom_regex
+        self.h_vector = h_vector
+        self.ignore_regex = ignore_regex
         self.max_len = max_len
         self.pad_len = pad_len
-        self.h_vector = h_vector
         self._calculate_zeros()
 
     def _append_atom_features(self, token_vector, mol, atom_index):
@@ -144,15 +147,15 @@ class SmilesFeaturizer(PipelineTransformer):
 
     def transform(self, X, y=None):
         X_new = DataFrame(X)
-        smiles_series = X_new[self.smiles_column].values
-        tokens_series = X_new[self.tokens_column].values
-        return self.featurize_series(smiles_series, tokens_series)
+        smiles_array = X_new[self.smiles_column].values
+        tokens_array = X_new[self.tokens_column].values
+        return self.featurize_series(smiles_array, tokens_array)
 
     def featurize_series(self, smiles_series, tokens_series):
         featurized_series = []
         for index, tokens in enumerate(tokens_series):
             if len(tokens) > self.max_len:
-                print(f'Too many tokens ({len(tokens)})\n{tokens}')
+                print(f'Too many tokens found ({len(tokens)}) at row {index}.')
                 smiles_vector = [0]*(self.max_zeros + 2*self.pad_zeros)
             else:
                 smiles_vector = self.featurize(smiles_series[index], tokens)
@@ -170,16 +173,4 @@ class SmilesFeaturizer(PipelineTransformer):
         smiles_vector.extend([0]*fill_zeros)
         smiles_vector.extend([0]*self.pad_zeros)
         return array(smiles_vector)
-
-
-class SmilesRebuilder(FunctionApplier):
-
-    def __init__(self, **function_kwargs):
-        self.function = self.rebuild
-        self.function_kwargs = function_kwargs
-
-    @staticmethod
-    def rebuild(smiles, **function_kwargs):
-        mol = MolFromSmiles(smiles)
-        return MolToSmiles(mol, **function_kwargs)
 
