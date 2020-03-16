@@ -174,3 +174,19 @@ class SmilesFeaturizer(PipelineTransformer):
         smiles_vector.extend([0]*self.pad_zeros)
         return array(smiles_vector)
 
+
+class SmilesRebuilder(FunctionApplier):
+
+    def __init__(self, astype=Series, allBondsExplicit=False,
+                 allHsExplicit=False, canonical=True, doRandom=False,
+                 isomericSmiles=True, kekuleSmiles=False, rootedAtAtom=-1):
+        super().__init__(self.rebuild, astype=astype,
+                         allBondsExplicit=allBondsExplicit,
+                         allHsExplicit=allHsExplicit, canonical=canonical,
+                         doRandom=doRandom, isomericSmiles=isomericSmiles,
+                         kekuleSmiles=kekuleSmiles, rootedAtAtom=rootedAtAtom)
+
+    def rebuild(self, smiles):
+        mol = MolFromSmiles(smiles)
+        return MolToSmiles(mol, **self.function_kwargs)
+
