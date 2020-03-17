@@ -73,8 +73,8 @@ class RegexTokenizer(FunctionApplier):
 
 class RingTagInserter(FunctionApplier):
 
-    def __init__(self, astype=Series, regex=r'%\d+|\d[\+\-]\]|.',
-                 reuse=False, tags='<>'):
+    def __init__(self, astype=Series, regex=r'%\d+|[\+\-]\d\]|.',
+                 reuse=True, tags='<>'):
         super().__init__(self.insert, astype=astype, regex=regex,
                          reuse=reuse, tags=tags)
 
