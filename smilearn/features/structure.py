@@ -1,14 +1,6 @@
 from re import findall, sub
 
 
-def is_char(char, astype=float):
-
-    def _is_char(token):
-        return astype(token == char)
-
-    return _is_char
-
-
 def get_branch_len(maxval=1, astype=float):
 
     def _get_branch_len(token):
@@ -28,4 +20,12 @@ def get_ring_int(maxval=1, astype=float):
             return astype(0)
 
     return _get_ring_int
+
+
+def is_char(char, astype=float):
+
+    def _is_char(token):
+        return astype(token == char)
+
+    return _is_char
 

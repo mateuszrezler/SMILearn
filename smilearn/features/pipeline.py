@@ -52,7 +52,7 @@ class ZerosFiller(PipelineTransformer):
 
 class DeepSmilesEncoder(FunctionApplier):
 
-    def __init__(self, branches=True, rings=True):
+    def __init__(self, astype=Series, branches=True, rings=True):
         super().__init__(self.encode)
         self.encoder = DeepSmilesConverter(branches, rings)
 

@@ -1,15 +1,20 @@
 from matplotlib.pyplot import show, subplots, tick_params
 from rdkit.Chem.Draw import MolToImage
+from seaborn import heatmap
 
 
-def feature_matrix(X, compound_num, rows, tokens=None, xlabels=None):
-    if tokens:
+def feature_matrix(X, compound_num, rows, tokens=None,
+                   xlabels=None, size=(20, 120)):
+    if tokens is not None:
         ylabels = [f'{index}. {token}'
                    for index, token in enumerate(tokens[compound_num])]
-    _, axis = subplots(figsize=(20, 100))
+    else:
+        ylabels = 'auto'
+    _, axis = subplots(figsize=size)
     tick_params(bottom=True, labeltop=True, labelbottom=True, top=True)
-    heatmap(around(X[compound_num].reshape(rows, len(xlabels)), 3), ax=axis,
-            cmap='YlGn', xticklabels=xlabels, yticklabels=ylabels, annot=True)
+    heatmap(X[compound_num].reshape(rows, len(xlabels)), annot=True, ax=axis,
+            cbar=False, cmap='YlGn', fmt='.1g',
+            xticklabels=xlabels, yticklabels=ylabels)
     show()
 
 

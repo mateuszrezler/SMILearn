@@ -1,43 +1,3 @@
-def has_chiral_tag(chiral_tag, astype=float):
-
-    def _has_chiral_tag(mol, index):
-        atom_chiral_tag = mol.GetAtomWithIdx(index).GetChiralTag()
-        return astype(str(atom_chiral_tag) == chiral_tag)
-
-    return _has_chiral_tag
-
-
-def has_hybridization(hybridization, astype=float):
-
-    def _has_hybridization(mol, index):
-        atom_hybridization = mol.GetAtomWithIdx(index).GetHybridization()
-        return astype(str(atom_hybridization) == hybridization)
-
-    return _has_hybridization
-
-
-def has_no_symbol(symbols, astype=float):
-    if isinstance(symbols, str):
-        symbols = [symbols]
-
-    def _has_no_symbol(mol, index):
-        atom_symbol = mol.GetAtomWithIdx(index).GetSymbol()
-        return astype(atom_symbol not in symbols)
-
-    return _has_no_symbol
-
-
-def has_symbol(symbols, astype=float):
-    if isinstance(symbols, str):
-        symbols = [symbols]
-
-    def _has_symbol(mol, index):
-        atom_symbol = mol.GetAtomWithIdx(index).GetSymbol()
-        return astype(atom_symbol in symbols)
-
-    return _has_symbol
-
-
 def get_atomic_num(maxval=1, astype=float):
 
     def _get_atomic_num(mol, index):
@@ -135,6 +95,46 @@ def get_valence(maxval=1, astype=float):
         return astype(valence / maxval)
 
     return _get_valence
+
+
+def has_chiral_tag(chiral_tag, astype=float):
+
+    def _has_chiral_tag(mol, index):
+        atom_chiral_tag = mol.GetAtomWithIdx(index).GetChiralTag()
+        return astype(str(atom_chiral_tag) == chiral_tag)
+
+    return _has_chiral_tag
+
+
+def has_hybridization(hybridization, astype=float):
+
+    def _has_hybridization(mol, index):
+        atom_hybridization = mol.GetAtomWithIdx(index).GetHybridization()
+        return astype(str(atom_hybridization) == hybridization)
+
+    return _has_hybridization
+
+
+def has_no_symbol(symbols, astype=float):
+    if isinstance(symbols, str):
+        symbols = [symbols]
+
+    def _has_no_symbol(mol, index):
+        atom_symbol = mol.GetAtomWithIdx(index).GetSymbol()
+        return astype(atom_symbol not in symbols)
+
+    return _has_no_symbol
+
+
+def has_symbol(symbols, astype=float):
+    if isinstance(symbols, str):
+        symbols = [symbols]
+
+    def _has_symbol(mol, index):
+        atom_symbol = mol.GetAtomWithIdx(index).GetSymbol()
+        return astype(atom_symbol in symbols)
+
+    return _has_symbol
 
 
 def is_aromatic(astype=float):
