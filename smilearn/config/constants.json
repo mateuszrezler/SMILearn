@@ -1,0 +1,30 @@
+{
+    "compounds": {
+        "c1": 568
+    },
+    "epochs": 16,
+    "layers": {
+        "conv1": {
+            "activation": "elu",
+            "filters": 64,
+            "kernel_size": 15,
+            "padding": "same",
+            "strides": 1
+        },
+        "pool": {
+            "padding": "same",
+            "pool_size": 6,
+            "strides": 5
+        },
+        "conv2": {
+            "activation": "elu",
+            "filters": 8,
+            "kernel_size": 18,
+            "padding": "same",
+            "strides": 3
+        }
+    },
+    "learning_rate": 0.0001,
+    "seed": 0,
+    "verbose": 0
+}

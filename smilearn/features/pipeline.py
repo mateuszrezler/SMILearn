@@ -101,7 +101,8 @@ class SmilesFeaturizer(PipelineTransformer):
 
     def __init__(self, atom_functions, struct_functions, smiles_column=0,
                  tokens_column=1, atom_regex=r'\[.+?\]|Br|Cl|.',
-                 h_vector=False, ignore_regex=None, max_len=100, pad_len=0):
+                 h_vector=False, ignore_regex=None, max_len=100,
+                 pad_len=0, warn=False):
         self.atom_functions = atom_functions
         self.struct_functions = struct_functions
         self.smiles_column = smiles_column
@@ -111,6 +112,7 @@ class SmilesFeaturizer(PipelineTransformer):
         self.ignore_regex = ignore_regex
         self.max_len = max_len
         self.pad_len = pad_len
+        self.warn = warn
         self._calculate_zeros()
 
     def _append_atom_features(self, token_vector, mol, atom_index):
@@ -154,7 +156,7 @@ class SmilesFeaturizer(PipelineTransformer):
     def featurize_series(self, smiles_series, tokens_series):
         featurized_series = []
         for index, tokens in enumerate(tokens_series):
-            if len(tokens) > self.max_len:
+            if len(tokens) > self.max_len and self.warn:
                 print(f'Too many tokens found ({len(tokens)}) at row {index}.')
                 smiles_vector = [0]*(self.max_zeros + 2*self.pad_zeros)
             else:
