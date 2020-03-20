@@ -16,9 +16,9 @@ def code(text):
     return f'<code>{text}</code>'
 
 
-def fig(counter, caption, br=(1, 2)):
+def fig(counter, caption, br=(1, 1)):
     display(HTML(
-        '<br/>'*br[0]+f'<br/><b>Fig. {counter}</b> {caption}'+'<br/>'*br[1]))
+        BR*br[0]+f'<b>Fig. {counter}.</b> {caption}'+BR*br[1]))
     counter += 1
     return counter
 
@@ -31,9 +31,9 @@ def p(*texts):
     display(HTML(''.join(texts)))
 
 
-def tab(counter, caption, br=(1, 2)):
+def tab(counter, caption, br=(1, 1)):
     display(HTML(
-        '<br/>'*br[0]+f'<br/><b>Tab. {counter}</b> {caption}'+'<br/>'*br[1]))
+        BR*br[0]+f'<b>Tab. {counter}.</b> {caption}'+BR*br[1]))
     counter += 1
     return counter
 

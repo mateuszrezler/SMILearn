@@ -3,8 +3,8 @@ from rdkit.Chem.Draw import MolToImage
 from seaborn import heatmap
 
 
-def feature_matrix(X, compound_num, rows, tokens=None,
-                   xlabels=None, size=(20, 120)):
+def feature_matrix(X, compound_num, rows, size=(20, 120),
+                   tokens=None, xlabels=None):
     if tokens is not None:
         ylabels = [f'{index}. {token}'
                    for index, token in enumerate(tokens[compound_num])]

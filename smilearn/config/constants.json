@@ -1,7 +1,4 @@
 {
-    "compounds": {
-        "c1": 568
-    },
     "epochs": 16,
     "layers": {
         "conv1": {

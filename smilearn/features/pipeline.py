@@ -73,7 +73,7 @@ class RegexTokenizer(FunctionApplier):
 
 class RingTagInserter(FunctionApplier):
 
-    def __init__(self, astype=Series, regex=r'%\d+|[\+\-]\d\]|.',
+    def __init__(self, astype=Series, regex=r'%\d+|[H\+\-]\d\]|.',
                  reuse=True, tags='<>'):
         super().__init__(self.insert, astype=astype, regex=regex,
                          reuse=reuse, tags=tags)
@@ -101,15 +101,13 @@ class SmilesFeaturizer(PipelineTransformer):
 
     def __init__(self, atom_functions, struct_functions, smiles_column=0,
                  tokens_column=1, atom_regex=r'\[.+?\]|Br|Cl|.',
-                 h_vector=False, ignore_regex=None, max_len=100,
-                 pad_len=0, warn=False):
+                 h_vector=False, max_len=100, pad_len=0, warn=False):
         self.atom_functions = atom_functions
         self.struct_functions = struct_functions
         self.smiles_column = smiles_column
         self.tokens_column = tokens_column
         self.atom_regex = atom_regex
         self.h_vector = h_vector
-        self.ignore_regex = ignore_regex
         self.max_len = max_len
         self.pad_len = pad_len
         self.warn = warn
@@ -128,9 +126,7 @@ class SmilesFeaturizer(PipelineTransformer):
         atom_index = 0
         for token in tokens:
             token_vector = []
-            if self.ignore_regex and search(self.ignore_regex, token):
-                continue
-            elif self.h_vector and token == 'H':
+            if self.h_vector and token == 'H':
                 token_vector.extend([1] + [0]*(self.n_func-1))
             elif search(self.atom_regex, token):
                 self._append_atom_features(token_vector, mol, atom_index)
@@ -156,9 +152,10 @@ class SmilesFeaturizer(PipelineTransformer):
     def featurize_series(self, smiles_series, tokens_series):
         featurized_series = []
         for index, tokens in enumerate(tokens_series):
-            if len(tokens) > self.max_len and self.warn:
-                print(f'Too many tokens found ({len(tokens)}) at row {index}.')
+            if len(tokens) > self.max_len:
                 smiles_vector = [0]*(self.max_zeros + 2*self.pad_zeros)
+                if self.warn:
+                    print(f'Too many tokens ({len(tokens)}) at row {index}.')
             else:
                 smiles_vector = self.featurize(smiles_series[index], tokens)
             featurized_series.append(smiles_vector)
