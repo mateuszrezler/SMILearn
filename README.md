@@ -24,6 +24,6 @@ $ conda activate smilearn
 $ jupyter notebook demo.ipynb
 ```
 ## Example
-$\gamma$-Cyhalothrin and heatmap of its feature matrix generated using this package.<br/>
+*&#947;*-Cyhalothrin and heatmap of its feature matrix generated using this package.<br/>
 ![Image gamma-cyhalothrin](img/gamma_cyhalothrin.png)
 ![Feature matrix](img/matrix.png)

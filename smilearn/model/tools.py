@@ -14,5 +14,5 @@ class EpochCounter(Callback):
 def compare_tstudent(list1, list2, p=0.05):
     stat, pt = ttest_ind(list1, list2)
     print('The means ARE', ' NOT'*int(p < pt),
-          f' different with {(1-p)*100}% confidence level.\n', sep='')
+          f' different with {(1-p)*100:.0f}% confidence level.\n', sep='')
 
