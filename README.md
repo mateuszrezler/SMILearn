@@ -21,10 +21,9 @@ $ conda env create -f smilearn.yml
 $ conda activate smilearn
 
 # run demo
-$ jupyter notebook smilearn.ipynb
+$ jupyter notebook demo.ipynb
 ```
-or download and run [`setup.sh`](setup.sh) file
 ## Example
-Ipratropium bromide and heatmap of its feature matrix generated using this package.<br/>
-![Image of ipratropium bromide](img/ipratropium.png)
+$\gamma$-Cyhalothrin and heatmap of its feature matrix generated using this package.<br/>
+![Image gamma-cyhalothrin](img/gamma_cyhalothrin.png)
 ![Feature matrix](img/matrix.png)
