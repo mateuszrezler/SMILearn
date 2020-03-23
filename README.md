@@ -2,10 +2,11 @@
 A feature engineering package for deep learning models, based on a SMILES 
 representation of chemical compounds.  
 Enables fast customization and testing of feature matrices.
-## Getting started <small>*(no installation required)*</small>
-Before installation one can try a demo of this package by opening `demo.ipynb` notebook in Google Colab.<br/><br/>
+## Getting started *(no installation required)*
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mateuszrezler/smilearn/blob/master/demo.ipynb)
 
+Before installation one can try a demo of this package by opening `demo.ipynb` notebook in Google Colab.  
+Static preview of the notebook with a rendered output is provided [here](demo.ipynb).
 This notebook contains complete practical example of usage and basic documentation of the package (section 2.3).
 ## Installation
 The easiest way to recreate environment on a local host is to install Anaconda or Miniconda and buid it from the attached `smilearn.yml` file
